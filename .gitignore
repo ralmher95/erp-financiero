@@ -1,0 +1,173 @@
+# =============================================================
+#  .gitignore — ERP Financiero (PHP + MySQL)
+# =============================================================
+
+# -------------------------------------------------------------
+# 🔐 Credenciales y configuración sensible
+# -------------------------------------------------------------
+config/db_connect.php
+config/*.env
+.env
+.env.*
+!.env.example
+
+# -------------------------------------------------------------
+# 📦 Dependencias de Composer (no versionar vendor/)
+# -------------------------------------------------------------
+/vendor/
+composer.lock          # opcional: descomenta si prefieres no versionarlo
+                       # (recomendado versionarlo en proyectos de aplicación)
+
+# -------------------------------------------------------------
+# 📁 Archivos subidos por usuarios
+# -------------------------------------------------------------
+storage/
+public/uploads/
+/tmp/
+/temp/
+
+# Excepciones: mantener la carpeta pero ignorar su contenido
+!storage/.gitkeep
+!public/uploads/.gitkeep
+
+# -------------------------------------------------------------
+# 🪲 Logs y caché
+# -------------------------------------------------------------
+*.log
+logs/
+cache/
+*.cache
+
+# -------------------------------------------------------------
+# 🖥️ IDEs y editores
+# -------------------------------------------------------------
+
+# PhpStorm / IntelliJ
+.idea/
+*.iml
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# NetBeans
+nbproject/
+
+# Eclipse
+.project
+.buildpath
+.settings/
+
+# -------------------------------------------------------------
+# 🍎 macOS
+# -------------------------------------------------------------
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+# -------------------------------------------------------------
+# 🪟 Windows
+# -------------------------------------------------------------
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# -------------------------------------------------------------
+# 🐧 Linux
+# -------------------------------------------------------------
+*~
+.directory
+
+# -------------------------------------------------------------
+# 🧪 Tests y cobertura
+# -------------------------------------------------------------
+tests/output/
+coverage/
+.phpunit.cache
+.phpunit.result.cache
+
+# -------------------------------------------------------------
+# 📄 Archivos generados (PDFs de facturas, exports)
+# -------------------------------------------------------------
+public/exports/
+*.pdf
+
+# -------------------------------------------------------------
+# 🔧 Herramientas de build opcionales
+# -------------------------------------------------------------
+node_modules/
+npm-debug.log*
+yarn-error.log*
+package-lock.json
+
+# -------------------------------------------------------------
+# 🗄️ Backups y dumps de base de datos con datos reales
+# -------------------------------------------------------------
+*.sql.gz
+*.dump
+*_backup.sql
+database/backups/
+
+# El schema de ejemplo SÍ se versiona:
+!database/schema.sql
+!database/datos_ejemplo.sql
+
+# Dependencias
+/vendor/
+/node_modules/
+
+# Configuración y Secretos
+.env
+config/db_config.php
+
+# Temporales y Logs
+*.log
+/storage/*.pdf
+/public/assets/uploads/ 
+
+# Dependencias de Composer
+/vendor/
+
+# Archivos de configuración con credenciales reales
+/config/db_connect.php
+.env
+
+# Almacenamiento dinámico (mantenemos la carpeta pero ignoramos el contenido)
+/storage/tickets/*
+!/storage/tickets/.gitkeep
+
+# Archivos temporales del sistema y OCR
+/tmp/
+*.log
+.DS_Store
+Thumbs.db
+
+# Ignorar la suite de tests en producción (por seguridad adicional si se despliega mal)
+# Descomentar la siguiente línea si no quieres versionar los tests
+# /tests/
+# Dependencias
+/vendor/
+node_modules/
+
+# Configuración sensible (Seguridad)
+config/db_connect.php
+.env
+
+# Archivos de almacenamiento y temporales
+storage/tickets/*
+!storage/tickets/.gitkeep
+*.log
+
+# Scripts de utilidad local
+conver.py
+erp_financiero_proyecto.txt
