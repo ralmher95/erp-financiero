@@ -76,7 +76,7 @@ erp-financiero/
 ├─ .gitignore        # Exclusión de archivos sensibles
 └─ README.md         # Documentación principal
 
-##⚙️ Instalación y Despliegue
+⚙️ Instalación y Despliegue
 Sigue estos pasos para ejecutar el proyecto en tu entorno local:
 
 Clonar el repositorio:
