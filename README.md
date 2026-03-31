@@ -6,6 +6,9 @@
   <img src="https://img.shields.io/badge/Tesseract-OCR-green?style=for-the-badge&logo=google-cloud&logoColor=white" alt="OCR">
   <img src="https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge" alt="License">
 </p>
+<p align="center">
+Desarrollado con ❤️ por <a href="https://www.google.com/search?q=https://github.com/ralmher95">ralmher95</a>
+</p>
 
 Este es un sistema integral de **gestión financiera** desarrollado en PHP. Su propósito es automatizar la contabilidad empresarial mediante la digitalización de documentos físicos con tecnología **OCR** y la generación de reportes profesionales en **PDF**.
 
@@ -73,8 +76,8 @@ erp-financiero/
 ├─ .gitignore        # Exclusión de credenciales y dependencias
 └─ README.md         # Manual del proyecto
 
----
-<title>⚙️ Instalación y Despliegue </title>
+
+⚙️ Instalación y Despliegue 
 Sigue estos pasos para configurar el entorno local:
 
 1. Clonar y Dependencias
@@ -109,8 +112,6 @@ Escalabilidad: Uso de namespaces para mantener un código limpio y mantenible.
 📝 Conclusión
 Este ERP consolida conocimientos en arquitectura de software, seguridad y automatización. Representa un paso firme en mi evolución como desarrollador enfocado en soluciones eficientes, escalables y profesionales para el mundo real.
 
-<p align="center">
-Desarrollado con ❤️ por <a href="https://www.google.com/search?q=https://github.com/ralmher95">ralmher95</a>
-</p>
+
 Desarrollado con enfoque en la eficiencia y la arquitectura limpia por ralmher95.
 
