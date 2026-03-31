@@ -1,63 +1,61 @@
 # 🏦 ERP Financiero — Gestión Contable & OCR
 
-[![PHP](https://img.shields.io/badge/PHP-7.4%2B-8892bf.svg?style=for-the-badge&logo=php)](https://www.php.net/)
-[![MySQL](https://img.shields.io/badge/MySQL-005C84?style=for-the-badge&logo=mysql&logoColor=white)](https://www.mysql.com/)
-[![Tesseract](https://img.shields.io/badge/OCR-Tesseract-green.svg?style=for-the-badge)](https://github.com/tesseract-ocr/tesseract)
-[![License](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](LICENSE)
+<p align="center">
+  <img src="https://img.shields.io/badge/PHP-7.4%2B-8892bf?style=for-the-badge&logo=php&logoColor=white" alt="PHP">
+  <img src="https://img.shields.io/badge/MySQL-005C84?style=for-the-badge&logo=mysql&logoColor=white" alt="MySQL">
+  <img src="https://img.shields.io/badge/Tesseract-OCR-green?style=for-the-badge&logo=google-cloud&logoColor=white" alt="OCR">
+  <img src="https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge" alt="License">
+</p>
 
-Este es un sistema integral de **gestión financiera** desarrollado en PHP. Su propósito es automatizar la contabilidad empresarial, permitiendo la digitalización de documentos físicos mediante tecnología OCR y la generación de reportes profesionales en PDF.
+Este es un sistema integral de **gestión financiera** desarrollado en PHP. Su propósito es automatizar la contabilidad empresarial mediante la digitalización de documentos físicos con tecnología **OCR** y la generación de reportes profesionales en **PDF**.
 
-> [!NOTE]
-> Este proyecto es una pieza clave de mi portfolio profesional, diseñado para demostrar capacidades en arquitectura de software, seguridad y manejo de librerías de alto nivel.
+> [!IMPORTANT]
+> **Portfolio Showcase:** Este proyecto demuestra capacidades avanzadas en arquitectura de software (PSR-4), seguridad backend e integración de binarios del sistema en entornos web.
 
 ---
 
 ## 🎯 ¿Qué hace este proyecto?
 
-El sistema está diseñado para cubrir las necesidades core de un departamento financiero:
+El sistema cubre las necesidades críticas de un departamento financiero:
 
-* **📈 Gestión Contable:** Control total del Plan General Contable y registro de asientos.
-* **👁️ Digitalización OCR:** Extracción automática de texto desde tickets/facturas usando **Tesseract OCR**.
-* **📄 Reportes Dinámicos:** Generación de balances y facturas en PDF listas para su uso legal.
-* **📊 Dashboard Inteligente:** Visualización en tiempo real de métricas críticas del estado económico.
-* **🛡️ Seguridad Senior:** Gestión protegida de sesiones y conexiones a base de datos.
-* **📂 Almacenamiento Estructurado:** Organización eficiente de archivos en el servidor (`storage/`).
+* **📈 Gestión Contable:** Control del Plan General Contable y registro de asientos.
+* **👁️ Digitalización OCR:** Extracción de texto desde tickets/facturas con **Tesseract OCR**.
+* **📄 Reportes Dinámicos:** Generación de balances y facturas mediante **Dompdf**.
+* **📊 Dashboard Inteligente:** Visualización de métricas críticas en tiempo real.
+* **🛡️ Seguridad Senior:** Protección de sesiones, sanitización de datos y gestión de secretos.
+* **📂 Almacenamiento:** Gestión eficiente de archivos en el servidor (`storage/`).
 
 ---
 
 ## 🛠️ Tecnologías y Herramientas
 
-### **Backend & Lógica**
-* **PHP:** Arquitectura orientada a objetos (Framework MVC propio).
-* **Python:** Scripts especializados para procesamiento y consolidación de datos.
-* **MySQL / MariaDB:** Base de datos relacional optimizada para integridad contable.
+### **Core Stack**
+* **Backend:** PHP (Arquitectura MVC propia) & Python (Scripts de utilidad).
+* **Database:** MySQL / MariaDB (Esquema relacional optimizado).
+* **Frontend:** HTML5, CSS3 (Diseño responsivo) y JavaScript (ES6+).
 
-### **Frontend & UI**
-* **Lenguajes:** HTML5, CSS3 (Diseño responsivo), JavaScript (ES6+).
-* **Librerías:** Bootstrap, Chart.js (Gráficas), jQuery, PDF.js.
-
-### **Librerías Externas (Core)**
-* **Dompdf:** Renderizado de HTML a PDF.
-* **Tesseract OCR:** Reconocimiento óptico de caracteres.
-* **PHPMailer:** Gestión de notificaciones por correo.
+### **Librerías Clave**
+| Librería | Función |
+| :--- | :--- |
+| **Dompdf** | Renderizado de plantillas HTML a PDF profesional. |
+| **Tesseract OCR** | Motor de reconocimiento óptico de caracteres. |
+| **Chart.js** | Visualización de datos y analítica financiera. |
+| **PHPMailer** | Sistema de notificaciones y envío de facturas. |
 
 ---
 
-## 🧠 Conceptos Clave Aplicados
+## 🧠 Conceptos Técnicos Aplicados
 
-Durante el desarrollo se implementaron estándares de ingeniería de software de alto nivel:
-
-1.  **Autoloading PSR-4:** Estructura de clases profesional y organizada.
-2.  **Integración de Motores Externos:** Comunicación fluida entre el backend y binarios del sistema (Tesseract).
-3.  **Manipulación de Buffers:** Uso de `dompdf` para manejar vistas complejas en memoria.
-4.  **Arquitectura Limpia:** Separación estricta entre la lógica de negocio (`src/`) y los activos públicos (`public/`).
-5.  **Seguridad en Entornos:** Implementación de archivos de configuración protegidos y exclusión de secretos vía `.gitignore`.
+* **Autoloading PSR-4:** Estructura modular y profesional para una carga de clases eficiente.
+* **Interoperabilidad de Sistemas:** Comunicación entre PHP y motores externos del SO.
+* **Arquitectura Limpia:** Separación estricta entre lógica de negocio (`src/`) y punto de entrada público (`public/`).
+* **Gestión de Buffers:** Optimización de memoria al renderizar documentos complejos.
 
 ---
 
 ## 📸 Capturas del Proyecto
 
-| Dashboard Principal | Módulo de OCR | Reporte PDF |
+| **Dashboard Principal** | **Módulo de OCR** | **Reporte PDF** |
 | :---: | :---: | :---: |
 | ![Dashboard](docs/img/home.png) | ![OCR](docs/img/ocr-process.png) | ![Reporte](docs/img/pdf-report.png) |
 
@@ -67,60 +65,51 @@ Durante el desarrollo se implementaron estándares de ingeniería de software de
 
 ```bash
 erp-financiero/
-├─ config/           # Configuración de DB (Protegido)
-├─ docs/             # Documentación e imágenes del proyecto
-│  └─ img/           # Recursos visuales del README
-├─ public/           # Punto de entrada (Assets JS/CSS)
-├─ src/              # Lógica de negocio (App PSR-4)
-├─ storage/          # Almacén de tickets procesados
-├─ .gitignore        # Exclusión de archivos sensibles
-└─ README.md         # Documentación principal
+├─ config/           # Configuración de base de datos (Protegido)
+├─ docs/             # Recursos de documentación e imágenes
+├─ public/           # Directorio raíz del servidor (Assets JS/CSS)
+├─ src/              # Lógica de negocio (Namespaces App\...)
+├─ storage/          # Almacén de archivos procesados y temporales
+├─ .gitignore        # Exclusión de credenciales y dependencias
+└─ README.md         # Manual del proyecto
 
----
-## ⚙️ Instalación y Despliegue
-Sigue estos pasos para ejecutar el proyecto en tu entorno local:
+⚙️ Instalación y Despliegue
+Sigue estos pasos para configurar el entorno local:
 
-Clonar el repositorio:
-
+1. Clonar y Dependencias
 Bash
 git clone [https://github.com/ralmher95/erp-financiero.git](https://github.com/ralmher95/erp-financiero.git)
 cd erp-financiero
-Instalar dependencias de PHP:
-
-Bash
 composer install
-Configurar el entorno:
-Crea el archivo config/db_connect.php con tus credenciales de MySQL basándote en el archivo de ejemplo.
+2. Configurar Base de Datos
+Crea el archivo config/db_connect.php basándote en la estructura de tu servidor local.
 
-Requisito de Sistema (OCR):
-Debes tener instalado Tesseract OCR en tu SO:
+3. Requisito de Sistema (OCR)
+Es indispensable tener instalado el motor Tesseract:
 
 Ubuntu: sudo apt install tesseract-ocr
 
-Windows: Descargar el binario oficial y añadirlo al PATH.
+Windows: Instalar binario oficial y añadir la ruta al PATH.
 
-## 🚀 Aprendizaje y Retos
-Este proyecto representó un desafío técnico importante, especialmente en la interoperabilidad de lenguajes.
+🚀 Aprendizaje y Retos
+El Reto OCR: Implementar la limpieza de imágenes y gestión de permisos en el servidor para maximizar la precisión de lectura.
 
-El Reto OCR: Configurar los permisos de lectura/escritura y limpiar las imágenes para mejorar la precisión del reconocimiento fue una curva de aprendizaje valiosa.
+Integridad SQL: Diseño de consultas complejas para garantizar balances contables exactos.
 
-Optimización SQL: Creación de consultas complejas para reportes contables que requieren integridad absoluta de datos.
+Escalabilidad: Uso de namespaces para mantener un código limpio y mantenible.
 
-Namespaces: Gestión avanzada de espacios de nombres en PHP para evitar colisiones en proyectos de gran escala.
+🔮 Mejoras Futuras
+[ ] Auth: Implementar autenticación robusta mediante JWT.
 
- 🔮 Mejoras Futuras
-[ ] Implementar autenticación robusta mediante JWT o OAuth2.
+[ ] AI: Integrar OpenCV para pre-procesamiento de imagen avanzado.
 
-[ ] Integrar OpenCV para pre-procesar imágenes (filtros de contraste) antes del OCR.
+[ ] API: Crear una interfaz REST para conectividad móvil.
 
-[ ] Añadir gráficas interactivas avanzadas con Chart.js.
+📝 Conclusión
+Este ERP consolida conocimientos en arquitectura de software, seguridad y automatización. Representa un paso firme en mi evolución como desarrollador enfocado en soluciones eficientes, escalables y profesionales para el mundo real.
 
-[ ] Crear una API REST para compatibilidad con aplicaciones móviles.
-
-## Conclusión
-Este ERP Financiero demuestra mi capacidad para construir soluciones complejas que integran diversas tecnologías (PHP, Python, OCR, SQL).
-
-A través de este desarrollo, he consolidado mis conocimientos en arquitectura de software, seguridad y automatización de procesos, creando una herramienta funcional que resuelve problemas reales del mundo contable. Es un paso adelante en mi evolución como desarrollador enfocado en soluciones eficientes y profesionales. Este proyecto fue diseñado con fines educativos.
-
+<p align="center">
+Desarrollado con ❤️ por <a href="https://www.google.com/search?q=https://github.com/ralmher95">ralmher95</a>
+</p>
 Desarrollado con enfoque en la eficiencia y la arquitectura limpia por ralmher95.
 
