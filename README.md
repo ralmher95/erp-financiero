@@ -76,7 +76,8 @@ erp-financiero/
 ├─ .gitignore        # Exclusión de archivos sensibles
 └─ README.md         # Documentación principal
 
-⚙️ Instalación y Despliegue
+---
+## ⚙️ Instalación y Despliegue
 Sigue estos pasos para ejecutar el proyecto en tu entorno local:
 
 Clonar el repositorio:
@@ -98,7 +99,7 @@ Ubuntu: sudo apt install tesseract-ocr
 
 Windows: Descargar el binario oficial y añadirlo al PATH.
 
-🚀 Aprendizaje y Retos
+## 🚀 Aprendizaje y Retos
 Este proyecto representó un desafío técnico importante, especialmente en la interoperabilidad de lenguajes.
 
 El Reto OCR: Configurar los permisos de lectura/escritura y limpiar las imágenes para mejorar la precisión del reconocimiento fue una curva de aprendizaje valiosa.
@@ -107,7 +108,7 @@ Optimización SQL: Creación de consultas complejas para reportes contables que 
 
 Namespaces: Gestión avanzada de espacios de nombres en PHP para evitar colisiones en proyectos de gran escala.
 
-🔮 Mejoras Futuras
+ 🔮 Mejoras Futuras
 [ ] Implementar autenticación robusta mediante JWT o OAuth2.
 
 [ ] Integrar OpenCV para pre-procesar imágenes (filtros de contraste) antes del OCR.
@@ -116,7 +117,7 @@ Namespaces: Gestión avanzada de espacios de nombres en PHP para evitar colision
 
 [ ] Crear una API REST para compatibilidad con aplicaciones móviles.
 
-Conclusión
+## Conclusión
 Este ERP Financiero demuestra mi capacidad para construir soluciones complejas que integran diversas tecnologías (PHP, Python, OCR, SQL).
 
 A través de este desarrollo, he consolidado mis conocimientos en arquitectura de software, seguridad y automatización de procesos, creando una herramienta funcional que resuelve problemas reales del mundo contable. Es un paso adelante en mi evolución como desarrollador enfocado en soluciones eficientes y profesionales. Este proyecto fue diseñado con fines educativos.
