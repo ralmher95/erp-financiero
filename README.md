@@ -1,78 +1,125 @@
-ERP Financiero — Sistema de Gestión Contable y OCR
-Este proyecto consiste en el desarrollo de un sistema integral de gestión financiera construido en PHP que permite automatizar la contabilidad, generar reportes profesionales y digitalizar documentos físicos mediante tecnología OCR.El objetivo del proyecto ha sido profundizar en el desarrollo backend con PHP, la gestión de bases de datos relacionales y la integración de librerías externas para resolver problemas complejos como el reconocimiento óptico de caracteres y la generación de documentos dinámicos.Además, este proyecto forma parte de mi aprendizaje como desarrollador y ha sido diseñado como una pieza clave de mi portfolio profesional, demostrando capacidades de arquitectura de software y seguridad.
+# 🏦 ERP Financiero — Gestión Contable & OCR
 
-¿Qué hace este proyecto? 
-El sistema permite:
-Gestión Contable: Controlar el Plan General Contable y los asientos de la empresa.
-Digitalización OCR: Subir fotos de tickets o facturas y extraer el texto automáticamente mediante Tesseract OCR.
-Generación de Reportes: Crear facturas y balances financieros en formato PDF de manera automatizada.Dashboard Financiero: Visualizar métricas clave del estado económico en una interfaz centralizada.Seguridad de Datos: Gestión protegida de conexiones a base de datos y manejo de sesiones.
-Gestión de Almacenamiento: Organización eficiente de archivos físicos y digitales en el servidor.
-Tecnologías y herramientas utilizadas.
-Backend y Lógica. PHP (Framework MVC)
-Python (Scripts de utilidad/procesamiento)
-Base de DatosMySQL / MariaDB
-Lenguajes de Frontend. HTML5/CSS3/JavaScript
-Librerías externas. Bootstrap / Chart.js / jQuery / PDF.js / Tesseract OCR / PHPMailer
+[![PHP](https://img.shields.io/badge/PHP-7.4%2B-8892bf.svg?style=for-the-badge&logo=php)](https://www.php.net/)
+[![MySQL](https://img.shields.io/badge/MySQL-005C84?style=for-the-badge&logo=mysql&logoColor=white)](https://www.mysql.com/)
+[![Tesseract](https://img.shields.io/badge/OCR-Tesseract-green.svg?style=for-the-badge)](https://github.com/tesseract-ocr/tesseract)
+[![License](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](LICENSE)
 
-Conceptos clave del proyecto:
-Durante el desarrollo de este ERP se han puesto en práctica conceptos avanzados de ingeniería de software:
-Autoloading PSR-4: Implementación de una estructura de clases profesional y organizada.
-Integración de Motores Externos: Configuración y comunicación del backend con Tesseract OCR a nivel de sistema.
-Manipulación de Buffers: Uso de dompdf para renderizar vistas complejas en documentos descargables.
-Seguridad en Entornos: Implementación de archivos de configuración protegidos y uso de .gitignore para credenciales.
-Gestión de Archivos: Creación de un sistema de subida y almacenamiento seguro en el servidor (storage/).
-Arquitectura Limpia: Separación de la lógica de negocio (src/) de los archivos públicos (public/).
+Este es un sistema integral de **gestión financiera** desarrollado en PHP. Su propósito es automatizar la contabilidad empresarial, permitiendo la digitalización de documentos físicos mediante tecnología OCR y la generación de reportes profesionales en PDF.
 
-Capturas del proyecto
+> [!NOTE]
+> Este proyecto es una pieza clave de mi portfolio profesional, diseñado para demostrar capacidades en arquitectura de software, seguridad y manejo de librerías de alto nivel.
 
-## Dashboard Principal
-![Dashboard](docs/img/home.png)
+---
 
-## Módulo de OCR en Acción
-![OCR en Acción](docs/img/ocr-process.png)
+## 🎯 ¿Qué hace este proyecto?
 
-## Reporte PDF Generado
-![Reporte PDF](docs/img/pdf-report.png)
+El sistema está diseñado para cubrir las necesidades core de un departamento financiero:
 
-Estructura del proyecto
-La estructura principal del repositorio es la siguiente:
+* **📈 Gestión Contable:** Control total del Plan General Contable y registro de asientos.
+* **👁️ Digitalización OCR:** Extracción automática de texto desde tickets/facturas usando **Tesseract OCR**.
+* **📄 Reportes Dinámicos:** Generación de balances y facturas en PDF listas para su uso legal.
+* **📊 Dashboard Inteligente:** Visualización en tiempo real de métricas críticas del estado económico.
+* **🛡️ Seguridad Senior:** Gestión protegida de sesiones y conexiones a base de datos.
+* **📂 Almacenamiento Estructurado:** Organización eficiente de archivos en el servidor (`storage/`).
 
+---
+
+## 🛠️ Tecnologías y Herramientas
+
+### **Backend & Lógica**
+* **PHP:** Arquitectura orientada a objetos (Framework MVC propio).
+* **Python:** Scripts especializados para procesamiento y consolidación de datos.
+* **MySQL / MariaDB:** Base de datos relacional optimizada para integridad contable.
+
+### **Frontend & UI**
+* **Lenguajes:** HTML5, CSS3 (Diseño responsivo), JavaScript (ES6+).
+* **Librerías:** Bootstrap, Chart.js (Gráficas), jQuery, PDF.js.
+
+### **Librerías Externas (Core)**
+* **Dompdf:** Renderizado de HTML a PDF.
+* **Tesseract OCR:** Reconocimiento óptico de caracteres.
+* **PHPMailer:** Gestión de notificaciones por correo.
+
+---
+
+## 🧠 Conceptos Clave Aplicados
+
+Durante el desarrollo se implementaron estándares de ingeniería de software de alto nivel:
+
+1.  **Autoloading PSR-4:** Estructura de clases profesional y organizada.
+2.  **Integración de Motores Externos:** Comunicación fluida entre el backend y binarios del sistema (Tesseract).
+3.  **Manipulación de Buffers:** Uso de `dompdf` para manejar vistas complejas en memoria.
+4.  **Arquitectura Limpia:** Separación estricta entre la lógica de negocio (`src/`) y los activos públicos (`public/`).
+5.  **Seguridad en Entornos:** Implementación de archivos de configuración protegidos y exclusión de secretos vía `.gitignore`.
+
+---
+
+## 📸 Capturas del Proyecto
+
+| Dashboard Principal | Módulo de OCR | Reporte PDF |
+| :---: | :---: | :---: |
+| ![Dashboard](docs/img/home.png) | ![OCR](docs/img/ocr-process.png) | ![Reporte](docs/img/pdf-report.png) |
+
+---
+
+## 📂 Estructura del Repositorio
+
+```bash
 erp-financiero/
-├─ README.md
-├─ .gitignore
-├─ config/
-│  └─ db_connect.php         # Configuración (Excluido de Git)
-├─ docs/
-│  └─ img/                   # Capturas de pantalla
-├─ public/
-│  └─ assets/                # CSS, JS e imágenes del front
-├─ src/
-│  └─ App/                   # Lógica de clases PSR-4
-└─ storage/
-   └─ tickets/               # Almacén de archivos procesados
+├─ config/           # Configuración de DB (Protegido)
+├─ docs/             # Documentación e imágenes del proyecto
+│  └─ img/           # Recursos visuales del README
+├─ public/           # Punto de entrada (Assets JS/CSS)
+├─ src/              # Lógica de negocio (App PSR-4)
+├─ storage/          # Almacén de tickets procesados
+├─ .gitignore        # Exclusión de archivos sensibles
+└─ README.md         # Documentación principal
 
-Instalación del proyecto.
-Para desplegar este proyecto en un entorno local, sigue estos pasos:
-Clonar el repositorio: Bashgit clone https://github.com/ralmher95/erp-financiero.git
+⚙️ Instalación y Despliegue
+Sigue estos pasos para ejecutar el proyecto en tu entorno local:
 
-Instalar dependencias: 
-Ejecutar Composer para descargar las librerías necesarias:
-Bashcomposer install
+Clonar el repositorio:
 
+Bash
+git clone [https://github.com/ralmher95/erp-financiero.git](https://github.com/ralmher95/erp-financiero.git)
+cd erp-financiero
+Instalar dependencias de PHP:
+
+Bash
+composer install
 Configurar el entorno:
-Crea un archivo config/db_connect.php basado en el archivo de ejemplo y configura tus credenciales de MySQL.
+Crea el archivo config/db_connect.php con tus credenciales de MySQL basándote en el archivo de ejemplo.
 
-Instalar Tesseract OCR:
-Asegúrate de tener instalado el motor Tesseract en tu sistema operativo para que la funcionalidad de lectura de tickets esté activa.
-Importar base de datos:Utiliza el archivo .sql incluido (si aplica) para crear la estructura de tablas necesaria.
+Requisito de Sistema (OCR):
+Debes tener instalado Tesseract OCR en tu SO:
 
-Aprendizaje y retos del proyecto
-Este proyecto ha representado un desafío técnico importante, especialmente en la integración de herramientas que no son nativas de PHP.Uno de los mayores retos fue la configuración del motor OCR, ya que requiere una gestión precisa de permisos de lectura/escritura en el servidor y una limpieza previa de las imágenes para mejorar la precisión del reconocimiento.También profundicé en:La creación de consultas SQL optimizadas para reportes contables.La gestión de namespaces en PHP para evitar conflictos de nombres.El uso de scripts de Python para automatizar la consolidación de archivos del proyecto.Este ERP me ha ayudado a entender que una aplicación robusta no solo depende de un buen código, sino de una arquitectura que facilite el mantenimiento y la escalabilidad.
+Ubuntu: sudo apt install tesseract-ocr
 
-Mejoras futuras
-Para las próximas versiones del sistema, tengo planeado:Implementar un sistema de autenticación mediante JWT o OAuth2.
-Añadir gráficas interactivas con Chart.js en el dashboard.Mejorar el motor de OCR con procesamiento de imagen previo (filtros de contraste) mediante OpenCV.
+Windows: Descargar el binario oficial y añadirlo al PATH.
 
+🚀 Aprendizaje y Retos
+Este proyecto representó un desafío técnico importante, especialmente en la interoperabilidad de lenguajes.
+
+El Reto OCR: Configurar los permisos de lectura/escritura y limpiar las imágenes para mejorar la precisión del reconocimiento fue una curva de aprendizaje valiosa.
+
+Optimización SQL: Creación de consultas complejas para reportes contables que requieren integridad absoluta de datos.
+
+Namespaces: Gestión avanzada de espacios de nombres en PHP para evitar colisiones en proyectos de gran escala.
+
+🔮 Mejoras Futuras
+[ ] Implementar autenticación robusta mediante JWT o OAuth2.
+
+[ ] Integrar OpenCV para pre-procesar imágenes (filtros de contraste) antes del OCR.
+
+[ ] Añadir gráficas interactivas avanzadas con Chart.js.
+
+[ ] Crear una API REST para compatibilidad con aplicaciones móviles.
 
 Conclusión
-Este ERP Financiero demuestra mi capacidad para construir soluciones complejas que integran diversas tecnologías (PHP, Python, OCR, SQL).A través de este desarrollo, he consolidado mis conocimientos en arquitectura de software, seguridad y automatización de procesos, creando una herramienta funcional que resuelve problemas reales del mundo contable. Es un paso adelante en mi evolución como desarrollador enfocado en soluciones eficientes y profesionales. Este proyecto ha sido diseñado como una pieza clave de mi portfolio profesional, demostrando capacidades de arquitectura de software y seguridad. Este ERP esta diseñado con fines educativos, por lo que no pretende ser una herramienta de gestión de negocios, sino una herramienta de aprendizaje y desarrollo de software.
+Este ERP Financiero demuestra mi capacidad para construir soluciones complejas que integran diversas tecnologías (PHP, Python, OCR, SQL).
+
+A través de este desarrollo, he consolidado mis conocimientos en arquitectura de software, seguridad y automatización de procesos, creando una herramienta funcional que resuelve problemas reales del mundo contable. Es un paso adelante en mi evolución como desarrollador enfocado en soluciones eficientes y profesionales. Este proyecto fue diseñado con fines educativos.
+
+Desarrollado con enfoque en la eficiencia y la arquitectura limpia por ralmher95.
+
