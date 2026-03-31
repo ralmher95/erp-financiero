@@ -73,7 +73,8 @@ erp-financiero/
 ├─ .gitignore        # Exclusión de credenciales y dependencias
 └─ README.md         # Manual del proyecto
 
-⚙️ Instalación y Despliegue
+---
+<title>⚙️ Instalación y Despliegue </title>
 Sigue estos pasos para configurar el entorno local:
 
 1. Clonar y Dependencias
