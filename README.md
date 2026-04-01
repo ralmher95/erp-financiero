@@ -63,6 +63,7 @@ Bash
 git clone [https://github.com/ralmher95/erp-financiero.git](https://github.com/ralmher95/erp-financiero.git)
 cd erp-financiero
 composer install
+
 **2. Configurar Base de Datos**
 Crea el archivo config/db_connect.php basándote en la estructura de tu servidor local.
 
