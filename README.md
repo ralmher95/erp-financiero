@@ -55,6 +55,37 @@ El sistema cubre las necesidades críticas de un departamento financiero:
 * **Gestión de Buffers:** Optimización de memoria al renderizar documentos complejos.
 
 ---
+## ⚙️ Instalación y Despliegue 
+Sigue estos pasos para configurar el entorno local:
+
+**1. Clonar y Dependencias**
+Bash
+git clone [https://github.com/ralmher95/erp-financiero.git](https://github.com/ralmher95/erp-financiero.git)
+cd erp-financiero
+composer install
+**2. Configurar Base de Datos**
+Crea el archivo config/db_connect.php basándote en la estructura de tu servidor local.
+
+**3. Requisito de Sistema (OCR)**
+Es indispensable tener instalado el motor Tesseract:
+
+Ubuntu: sudo apt install tesseract-ocr
+
+Windows: Instalar binario oficial y añadir la ruta al PATH.
+
+## 🚀 Aprendizaje y Retos
+El Reto OCR: Implementar la limpieza de imágenes y gestión de permisos en el servidor para maximizar la precisión de lectura.
+
+Integridad SQL: Diseño de consultas complejas para garantizar balances contables exactos.
+
+Escalabilidad: Uso de namespaces para mantener un código limpio y mantenible.
+
+## 🔮 Mejoras Futuras
+[ ] Auth: Implementar autenticación robusta mediante JWT.
+
+[ ] AI: Integrar OpenCV para pre-procesamiento de imagen avanzado.
+
+[ ] API: Crear una interfaz REST para conectividad móvil.
 
 ## 📸 Capturas del Proyecto
 
@@ -63,6 +94,10 @@ El sistema cubre las necesidades críticas de un departamento financiero:
 | ![Dashboard](docs/img/home.png) | ![OCR](docs/img/ocr-process.png) | ![Reporte](docs/img/pdf-report.png) |
 
 ---
+## 📝 Conclusión
+Este ERP consolida conocimientos en arquitectura de software, seguridad y automatización. Representa un paso firme en mi evolución como desarrollador enfocado en soluciones eficientes, escalables y profesionales para el mundo real. Este proyecto esta diseñado con fines educativos.
+
+Desarrollado con enfoque en la eficiencia y la arquitectura limpia por ralmher95.
 
 ## 📂 Estructura del Repositorio
 
@@ -77,41 +112,7 @@ erp-financiero/
 └─ README.md         # Manual del proyecto
 
 
-⚙️ Instalación y Despliegue 
-Sigue estos pasos para configurar el entorno local:
-
-1. Clonar y Dependencias
-Bash
-git clone [https://github.com/ralmher95/erp-financiero.git](https://github.com/ralmher95/erp-financiero.git)
-cd erp-financiero
-composer install
-2. Configurar Base de Datos
-Crea el archivo config/db_connect.php basándote en la estructura de tu servidor local.
-
-3. Requisito de Sistema (OCR)
-Es indispensable tener instalado el motor Tesseract:
-
-Ubuntu: sudo apt install tesseract-ocr
-
-Windows: Instalar binario oficial y añadir la ruta al PATH.
-
-🚀 Aprendizaje y Retos
-El Reto OCR: Implementar la limpieza de imágenes y gestión de permisos en el servidor para maximizar la precisión de lectura.
-
-Integridad SQL: Diseño de consultas complejas para garantizar balances contables exactos.
-
-Escalabilidad: Uso de namespaces para mantener un código limpio y mantenible.
-
-🔮 Mejoras Futuras
-[ ] Auth: Implementar autenticación robusta mediante JWT.
-
-[ ] AI: Integrar OpenCV para pre-procesamiento de imagen avanzado.
-
-[ ] API: Crear una interfaz REST para conectividad móvil.
-
-📝 Conclusión
-Este ERP consolida conocimientos en arquitectura de software, seguridad y automatización. Representa un paso firme en mi evolución como desarrollador enfocado en soluciones eficientes, escalables y profesionales para el mundo real.
+---
 
 
-Desarrollado con enfoque en la eficiencia y la arquitectura limpia por ralmher95.
 
