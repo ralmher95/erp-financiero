@@ -10,11 +10,13 @@ jobs:
   build-and-test:
     runs-on: ubuntu-latest
     steps:
+      # checkout@v4.1.1
       - name: Checkout del código
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
 
+      # setup-php@v2.31.1 (SHA verificado directamente de la fuente)
       - name: Configurar PHP
-        uses: shivammathur/setup-php@b7dfee80627e54f851ec6513b198135805562d90
+        uses: shivammathur/setup-php@4bd44f2249b624526b3ee354c07923ed956895e4
         with:
           php-version: '8.2'
           extensions: mbstring, xml, ctype, mysql, pdo_mysql
@@ -22,6 +24,7 @@ jobs:
       - name: Validar Sintaxis PHP
         run: find . -name "*.php" -not -path "./vendor/*" -exec php -l {} \;
 
+      # setup-python@v5.0.0
       - name: Configurar Python
         uses: actions/setup-python@0a5c61591373683505ea898e09a3ea4f39ef2b9c
         with:
