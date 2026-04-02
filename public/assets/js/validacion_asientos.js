@@ -58,8 +58,91 @@ function formatearEuros(num) {
 }
 
 /* ============================================================
-   Lógica de cuadre
+   Lógica de cuadre y autocompletado
    ============================================================ */
+
+/**
+ * Detecta si una cuenta es de IVA (472 o 477)
+ * @param {string} textoCuenta 
+ * @returns {boolean}
+ */
+window.esCuentaIVA = function(textoCuenta) {
+    if (!textoCuenta) return false;
+    // Buscamos 472 (Soportado) o 477 (Repercutido)
+    return textoCuenta.includes('472') || textoCuenta.includes('477');
+};
+
+/**
+ * Calcula automáticamente el IVA (21%) si se detecta una cuenta de IVA
+ * @param {HTMLElement} inputImporte 
+ */
+window.autocompletarIVA = function(inputImporte) {
+    if (!inputImporte) return;
+    
+    const fila = inputImporte.closest('.linea-asiento');
+    if (!fila) return;
+
+    const selectCuenta = fila.querySelector('select');
+    if (!selectCuenta) return;
+
+    const textoCuenta = selectCuenta.options[selectCuenta.selectedIndex]?.text || '';
+    
+    // Si es una cuenta de IVA
+    if (window.esCuentaIVA(textoCuenta)) {
+        const tipo = inputImporte.name.includes('debe') ? 'debe' : 'haber';
+        const tipoContrario = tipo === 'debe' ? 'haber' : 'debe';
+        
+        const inputsContrarios = document.querySelectorAll(`input[name="${tipoContrario}_importe[]"]`);
+        const inputsMismoLado = document.querySelectorAll(`input[name="${tipo}_importe[]"]`);
+        
+        let baseImponible = 0;
+
+        // 1. Prioridad: Buscar base en el MISMO lado (Asiento: Gasto 600 + IVA 472 en el Debe)
+        inputsMismoLado.forEach(inp => {
+            if (inp === inputImporte) return;
+            const f = inp.closest('.linea-asiento');
+            const s = f?.querySelector('select');
+            const t = s?.options[s.selectedIndex]?.text || '';
+            if (t && !window.esCuentaIVA(t)) {
+                baseImponible += parsearImporte(inp.value);
+            }
+        });
+
+        // 2. Fallback: Buscar en el lado CONTRARIO (solo si el mismo lado está vacío)
+        if (baseImponible === 0) {
+            inputsContrarios.forEach(inp => {
+                const f = inp.closest('.linea-asiento');
+                const s = f?.querySelector('select');
+                const t = s?.options[s.selectedIndex]?.text || '';
+                if (t && !window.esCuentaIVA(t)) {
+                    baseImponible += parsearImporte(inp.value);
+                }
+            });
+        }
+
+        if (baseImponible > 0) {
+            const iva = Math.round(baseImponible * 0.21 * 100) / 100;
+            inputImporte.value = iva.toFixed(2);
+            recalcular();
+        }
+    }
+};
+
+/**
+ * Función central para disparar el recálculo de IVA en todas las líneas de IVA presentes
+ */
+window.dispararAutocompletadoGlobal = function() {
+    document.querySelectorAll('.js-cuenta').forEach(select => {
+        const texto = select.options[select.selectedIndex]?.text || '';
+        if (window.esCuentaIVA(texto)) {
+            const fila = select.closest('.linea-asiento');
+            const inputIVA = fila?.querySelector('.input-importe');
+            if (inputIVA) {
+                window.autocompletarIVA(inputIVA);
+            }
+        }
+    });
+};
 
 /**
  * Suma todos los importes de un conjunto de inputs.
@@ -265,10 +348,42 @@ function validarAntesDEnviar(e) {
 document.addEventListener('DOMContentLoaded', () => {
     // Recalcular al escribir en cualquier importe
     document.addEventListener('input', e => {
-        if (e.target.classList.contains('input-importe') ||
-            e.target.name === 'concepto' ||
-            e.target.name === 'fecha') {
+        if (e.target.classList.contains('input-importe')) {
             recalcular();
+            
+            // Si el importe cambiado NO es de IVA, intentar actualizar los IVAs existentes
+            const fila = e.target.closest('.linea-asiento');
+            const select = fila?.querySelector('select');
+            const texto = select?.options[select.selectedIndex]?.text || '';
+            
+            if (!window.esCuentaIVA(texto)) {
+                window.dispararAutocompletadoGlobal();
+            }
+        }
+        if (e.target.name === 'concepto' || e.target.name === 'fecha') {
+            recalcular();
+        }
+    });
+
+    // Integración con jQuery/Select2 si están presentes
+    if (window.jQuery) {
+        window.jQuery(document).on('change', '.js-cuenta', function() {
+            const inputImporte = this.closest('.linea-asiento')?.querySelector('.input-importe');
+            window.autocompletarIVA(inputImporte);
+        });
+    }
+
+    // Fallback para eventos nativos
+    document.addEventListener('change', e => {
+        if (e.target.classList.contains('js-cuenta')) {
+            const inputImporte = e.target.closest('.linea-asiento')?.querySelector('.input-importe');
+            window.autocompletarIVA(inputImporte);
+        }
+    });
+
+    document.addEventListener('focusin', e => {
+        if (e.target.classList.contains('input-importe')) {
+            window.autocompletarIVA(e.target);
         }
     });
 

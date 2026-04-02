@@ -17,20 +17,20 @@ declare(strict_types=1);
 // CORRECCIÓN v2.1: envueltas con defined() para que logger.php sea seguro
 // de incluir múltiples veces (require_once no siempre es suficiente cuando
 // hay rutas de include distintas que apuntan al mismo archivo físico).
-defined('LOG_DEBUG')   || define('LOG_DEBUG',   'DEBUG');
-defined('LOG_INFO')    || define('LOG_INFO',    'INFO');
-defined('LOG_WARNING') || define('LOG_WARNING', 'WARNING');
-defined('LOG_ERROR')   || define('LOG_ERROR',   'ERROR');
+defined('ERP_LOG_DEBUG')   || define('ERP_LOG_DEBUG',   'DEBUG');
+defined('ERP_LOG_INFO')    || define('ERP_LOG_INFO',    'INFO');
+defined('ERP_LOG_WARNING') || define('ERP_LOG_WARNING', 'WARNING');
+defined('ERP_LOG_ERROR')   || define('ERP_LOG_ERROR',   'ERROR');
 
 /**
  * Mapa de prioridad numérica para cada nivel.
  * Permite filtrar: si el nivel mínimo es INFO, los DEBUG no se escriben.
  */
-defined('LOG_PRIORIDAD') || define('LOG_PRIORIDAD', [
-    LOG_DEBUG   => 0,
-    LOG_INFO    => 1,
-    LOG_WARNING => 2,
-    LOG_ERROR   => 3,
+defined('ERP_LOG_PRIORIDAD') || define('ERP_LOG_PRIORIDAD', [
+    ERP_LOG_DEBUG   => 0,
+    ERP_LOG_INFO    => 1,
+    ERP_LOG_WARNING => 2,
+    ERP_LOG_ERROR   => 3,
 ]);
 
 /**
@@ -39,7 +39,7 @@ defined('LOG_PRIORIDAD') || define('LOG_PRIORIDAD', [
  * Formato de salida:
  *   [2025-06-10 14:32:01][INFO][Facturas][IP:192.168.1.1] Factura #42 creada. | ctx={"cliente_id":5}
  *
- * @param string  $nivel    Uno de LOG_DEBUG, LOG_INFO, LOG_WARNING, LOG_ERROR
+ * @param string  $nivel    Uno de ERP_LOG_DEBUG, ERP_LOG_INFO, ERP_LOG_WARNING, ERP_LOG_ERROR
  * @param string  $modulo   Nombre del módulo o clase que origina el evento
  * @param string  $mensaje  Descripción del evento
  * @param array   $contexto Datos adicionales serializables (ej: IDs, valores)
@@ -47,21 +47,30 @@ defined('LOG_PRIORIDAD') || define('LOG_PRIORIDAD', [
 function log_erp(string $nivel, string $modulo, string $mensaje, array $contexto = []): void
 {
     // ── Validar que el nivel sea conocido ─────────────────────────────────────
-    if (!array_key_exists($nivel, LOG_PRIORIDAD)) {
-        $nivel = LOG_WARNING;
+    if (!array_key_exists($nivel, ERP_LOG_PRIORIDAD)) {
+        $nivel = ERP_LOG_WARNING;
         $mensaje = "[nivel_desconocido] $mensaje";
     }
 
     // ── Filtro por nivel mínimo ────────────────────────────────────────────────
     // En producción suprimimos DEBUG para no saturar el log.
     // El nivel mínimo se configura en .env: LOG_LEVEL=INFO
-    $nivelMinimo    = strtoupper((string)(defined('APP_ENV') && getenv('LOG_LEVEL')
+    $nivelMinimoStr = (string)(defined('APP_ENV') && getenv('LOG_LEVEL')
         ? getenv('LOG_LEVEL')
-        : (defined('APP_ENV') && APP_ENV === 'production' ? LOG_INFO : LOG_DEBUG)));
+        : (defined('APP_ENV') && APP_ENV === 'production' ? 'INFO' : 'DEBUG'));
+    
+    // Mapeamos el string del .env al nombre de nuestra constante
+    $nivelMinimo = match(strtoupper($nivelMinimoStr)) {
+        'DEBUG'   => ERP_LOG_DEBUG,
+        'INFO'    => ERP_LOG_INFO,
+        'WARNING' => ERP_LOG_WARNING,
+        'ERROR'   => ERP_LOG_ERROR,
+        default   => ERP_LOG_INFO
+    };
 
-    $prioridadMinima = LOG_PRIORIDAD[$nivelMinimo] ?? 0;
+    $prioridadMinima = ERP_LOG_PRIORIDAD[$nivelMinimo] ?? 1;
 
-    if (LOG_PRIORIDAD[$nivel] < $prioridadMinima) {
+    if (ERP_LOG_PRIORIDAD[$nivel] < $prioridadMinima) {
         return; // Nivel insuficiente: descartar silenciosamente
     }
 
@@ -125,20 +134,20 @@ function escribir_log_archivo(string $archivo, string $linea): void
 
 function log_debug(string $modulo, string $mensaje, array $ctx = []): void
 {
-    log_erp(LOG_DEBUG, $modulo, $mensaje, $ctx);
+    log_erp(ERP_LOG_DEBUG, $modulo, $mensaje, $ctx);
 }
 
 function log_info(string $modulo, string $mensaje, array $ctx = []): void
 {
-    log_erp(LOG_INFO, $modulo, $mensaje, $ctx);
+    log_erp(ERP_LOG_INFO, $modulo, $mensaje, $ctx);
 }
 
 function log_warning(string $modulo, string $mensaje, array $ctx = []): void
 {
-    log_erp(LOG_WARNING, $modulo, $mensaje, $ctx);
+    log_erp(ERP_LOG_WARNING, $modulo, $mensaje, $ctx);
 }
 
 function log_error(string $modulo, string $mensaje, array $ctx = []): void
 {
-    log_erp(LOG_ERROR, $modulo, $mensaje, $ctx);
+    log_erp(ERP_LOG_ERROR, $modulo, $mensaje, $ctx);
 }

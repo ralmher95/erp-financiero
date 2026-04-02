@@ -1,0 +1,19 @@
+name: Verificación del ERP Financiero  # Nombre del flujo
+
+on: [push]  # Se dispara cada vez que haces un push
+
+jobs:
+  build:
+    runs-on: ubuntu-latest  # Se ejecuta en un servidor Linux
+
+    steps:
+      - name: Descargar el código
+        uses: actions/checkout@v4
+
+      - name: Configurar PHP  # Útil para tu backend
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+
+      - name: Ejecutar Tests Contables
+        run: php vendor/bin/phpunit  # Aquí automatizas el rigor técnico

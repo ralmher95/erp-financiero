@@ -49,14 +49,15 @@ class InvoiceController {
             ]);
             $facturaId = (int)$this->pdo->lastInsertId();
 
-            $insLinea = $this->pdo->prepare("INSERT INTO lineas_factura (factura_id, descripcion, cantidad, precio_unitario, subtotal) VALUES (?, ?, ?, ?, ?)");
+            $insLinea = $this->pdo->prepare("INSERT INTO factura_lineas (factura_id, descripcion, cantidad, precio, iva, total) VALUES (?, ?, ?, ?, ?, ?)");
             foreach ($postData['lineas'] as $linea) {
                 $insLinea->execute([
                     $facturaId, 
                     $linea['desc'], 
                     $linea['cant'], 
                     $linea['precio'], 
-                    $linea['subtotal']
+                    $linea['iva'] ?? 21,
+                    $linea['total'] ?? ($linea['cant'] * $linea['precio'] * 1.21)
                 ]);
             }
 

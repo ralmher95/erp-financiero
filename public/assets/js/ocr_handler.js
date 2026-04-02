@@ -166,45 +166,75 @@
         _setValorCampo('emisor',     data.emisor);
         _setValorCampo('nif_emisor', data.nif);
 
-        // Intentar seleccionar automáticamente al cliente por NIF o Nombre
-        if (data.nif || data.emisor) {
-            const selectCliente = document.getElementById('cliente_id');
-            if (selectCliente) {
+        // Limpieza profunda del nombre del emisor para el matching
+        let nombreParaMatch = (data.emisor || '').toLowerCase().trim();
+        // Eliminar "concepto", "descripción", "empresa:" y otros ruidos
+        nombreParaMatch = nombreParaMatch
+            .replace(/^(empresa|nombre|emisor|cliente)[:\s]*/i, '')
+            .replace(/concepto/g, '')
+            .replace(/descripción/g, '')
+            .replace(/descripcion/g, '')
+            .replace(/[·|•*-]/g, '')
+            .trim();
+
+        // Seleccionar tipo de factura automáticamente
+        const nombreEmisor = (data.emisor || '').toLowerCase();
+        const esRecibida = !nombreEmisor.includes('soluciones creativas');
+        const radioTipo = document.querySelector(`input[name="tipo"][value="${esRecibida ? 'recibida' : 'emitida'}"]`);
+        if (radioTipo) {
+            radioTipo.checked = true;
+            // Disparar el cambio de etiquetas si la función existe
+            if (typeof cambiarTipoFactura === 'function') {
+                cambiarTipoFactura(esRecibida ? 'recibida' : 'emitida');
+            }
+        }
+
+        // Intentar seleccionar automáticamente al cliente/proveedor por NIF o Nombre
+        if (data.nif || nombreParaMatch) {
+            const selectEntidad = document.getElementById('entidad_id') || document.getElementById('cliente_id');
+            if (selectEntidad) {
                 const nifLimpio = (data.nif || '').replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
-                const nombreLimpio = (data.emisor || '').toLowerCase().trim();
-                let clienteEncontrado = false;
+                let entidadEncontrada = false;
 
                 // 1. Prioridad: Buscar por NIF
                 if (nifLimpio) {
-                    for (let i = 0; i < selectCliente.options.length; i++) {
-                        const opt = selectCliente.options[i];
+                    for (let i = 0; i < selectEntidad.options.length; i++) {
+                        const opt = selectEntidad.options[i];
                         const nifOpcion = (opt.getAttribute('data-nif') || '').replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
                         if (nifOpcion && nifOpcion === nifLimpio) {
-                            selectCliente.selectedIndex = i;
-                            clienteEncontrado = true;
-                            console.log(`[OCR] Cliente seleccionado por NIF: ${opt.text}`);
+                            selectEntidad.selectedIndex = i;
+                            entidadEncontrada = true;
+                            console.log(`[OCR] Entidad seleccionada por NIF: ${opt.text}`);
                             break;
                         }
                     }
                 }
 
                 // 2. Fallback: Buscar por nombre (coincidencia parcial)
-                if (!clienteEncontrado && nombreLimpio) {
-                    for (let i = 0; i < selectCliente.options.length; i++) {
-                        const opt = selectCliente.options[i];
-                        const nombreOpcion = (opt.getAttribute('data-nombre') || '');
-                        // Si el nombre extraído contiene el nombre del cliente o viceversa
-                        if (nombreOpcion && (nombreLimpio.includes(nombreOpcion) || nombreOpcion.includes(nombreLimpio))) {
-                            selectCliente.selectedIndex = i;
-                            clienteEncontrado = true;
-                            console.log(`[OCR] Cliente seleccionado por nombre (fallback): ${opt.text}`);
+                if (!entidadEncontrada && nombreParaMatch && nombreParaMatch.length > 3) {
+                    console.log(`[OCR] Buscando entidad por nombre: "${nombreParaMatch}"`);
+                    for (let i = 0; i < selectEntidad.options.length; i++) {
+                        const opt = selectEntidad.options[i];
+                        const nombreOpcion = (opt.getAttribute('data-nombre') || '').toLowerCase().trim();
+                        
+                        if (nombreOpcion && (
+                            nombreParaMatch.includes(nombreOpcion) || 
+                            nombreOpcion.includes(nombreParaMatch) ||
+                            (nombreParaMatch.includes('soluciones') && nombreOpcion.includes('soluciones'))
+                        )) {
+                            selectEntidad.selectedIndex = i;
+                            entidadEncontrada = true;
+                            console.log(`[OCR] Entidad seleccionada por nombre: ${opt.text}`);
                             break;
                         }
                     }
                 }
                 
-                if (!clienteEncontrado) {
-                    console.warn(`[OCR] No se pudo emparejar cliente para NIF: ${data.nif} o Nombre: ${data.emisor}`);
+                if (!entidadEncontrada) {
+                    console.warn(`[OCR] No se pudo emparejar entidad para NIF: ${data.nif} o Nombre: ${data.emisor}`);
+                } else {
+                    // Disparar evento change manual
+                    selectEntidad.dispatchEvent(new Event('change', { bubbles: true }));
                 }
             }
         }

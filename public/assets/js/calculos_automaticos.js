@@ -69,21 +69,38 @@ function agregarLinea() {
         { type: 'text',   name: `lineas[${lineaIndex}][concepto]`, ph: 'Concepto...', req: true },
         { type: 'number', name: `lineas[${lineaIndex}][cantidad]`, cls: 'cantidad', val: '1', step: '1', isInt: true },
         { type: 'number', name: `lineas[${lineaIndex}][precio]`,   cls: 'precio', ph: '0.00', step: '0.01', req: true },
-        { type: 'number', name: `lineas[${lineaIndex}][iva]`,      cls: 'iva', val: '21' },
+        { type: 'select', name: `lineas[${lineaIndex}][iva]`,      cls: 'iva', options: [
+            { val: '21', text: '21%' },
+            { val: '10', text: '10%' },
+            { val: '4',  text: '4%'  },
+            { val: '0',  text: '0%'  }
+        ]},
         { type: 'text',   name: `lineas[${lineaIndex}][total]`,    cls: 'total-linea', readOnly: true }
     ];
 
     columnas.forEach(col => {
         const td = document.createElement('td');
-        const input = document.createElement('input');
+        let input;
         
-        input.type = col.type;
+        if (col.type === 'select') {
+            input = document.createElement('select');
+            col.options.forEach(opt => {
+                const o = document.createElement('option');
+                o.value = opt.val;
+                o.textContent = opt.text;
+                input.appendChild(o);
+            });
+        } else {
+            input = document.createElement('input');
+            input.type = col.type;
+            if (col.ph)       input.placeholder = col.ph;
+            if (col.val)      input.value = col.val;
+            if (col.step)     input.step = col.step;
+            if (col.req)      input.required = true;
+        }
+        
         input.name = col.name;
         if (col.cls)      input.className = col.cls;
-        if (col.ph)       input.placeholder = col.ph;
-        if (col.val)      input.value = col.val;
-        if (col.step)     input.step = col.step;
-        if (col.req)      input.required = true;
         
         if (col.readOnly) {
             input.readOnly = true;

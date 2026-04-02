@@ -20,8 +20,13 @@ if (!hash_equals($_SESSION['csrf_token'] ?? '', $_POST['csrf_token'] ?? '')) {
 }
 
 // 1. Recogida de datos generales de la factura
+$tipo = $_POST['tipo'] ?? 'emitida';
+$entidad_id = filter_input(INPUT_POST, 'entidad_id', FILTER_VALIDATE_INT);
+
 $datosFactura = [
-    'cliente_id'     => filter_input(INPUT_POST, 'cliente_id', FILTER_VALIDATE_INT),
+    'tipo'           => $tipo,
+    'cliente_id'     => ($tipo === 'emitida') ? $entidad_id : null,
+    'proveedor_id'   => ($tipo === 'recibida') ? $entidad_id : null,
     'numero'         => filter_input(INPUT_POST, 'numero_factura', FILTER_SANITIZE_SPECIAL_CHARS),
     'fecha'          => $_POST['fecha'] ?? date('Y-m-d'),
     'base_imponible' => (float)($_POST['base_imponible'] ?? 0),
@@ -69,8 +74,8 @@ try {
     header("Location: listar_facturas.php?status=success");
     exit;
 
-} catch (Exception $e) {
-    error_log("Error Guardando Factura: " . $e->getMessage());
+} catch (Throwable $e) {
+    error_log("Error Fatal/Excepción Guardando Factura: " . $e->getMessage());
     
     // Guardar el mensaje de error en la sesión para mostrarlo en la vista
     $_SESSION['error_save'] = $e->getMessage();

@@ -197,28 +197,69 @@ class OcrService
     private function extraerEmisor(array $lineas): string
     {
         $candidatos = [];
+        // Palabras de ruido más completas y con variaciones comunes del OCR
+        $palabrasRuido = [
+            'Fecha', 'Factura', 'Nº', 'Número', 'Cliente', 'TOTAL', 'Base', 'IVA', 
+            'Subtotal', 'Importe', 'Pagar', 'Emitida', 'Contabilización', 'Inteligente',
+            'Subir Imagen', 'PDF', 'Formatos', 'Aceptados', 'Concepto', 'Descripción',
+            'Cantidad', 'Precio', 'Unitario', 'Añadir', 'Teléfono', 'Email', 'Web', 'Página',
+            'Servicios', 'Consultoría', 'Asesoría', 'Mantenimiento', 'Venta', 'Compra',
+            'Desarrollo', 'Básico', 'Web', 'Hosting', 'Dominio', 'Empresa', 'CIF', 'NIF'
+        ];
 
-        foreach ($lineas as $linea) {
+        foreach ($lineas as $i => $linea) {
+            // El nombre de la empresa emisor suele estar al principio
+            if ($i > 15) break; 
+
             $linea = trim($linea);
             if (empty($linea)) continue;
 
-            // Paramos al encontrar la primera línea estructurada de la factura
-            if (preg_match('/NIF|CIF|N\.I\.F|C\.I\.F|Factura|FACTURA|Fecha|FECHA|Total|IVA/i', $linea)) {
-                break;
-            }
+            // 1. Limpieza de prefijos comunes como "Empresa:", "Nombre:", "Emisor:"
+            $lineaLimpia = preg_replace('/^(?:Empresa|Nombre|Emisor|Cliente)[:\s]*/i', '', $linea);
 
-            // Ignorar líneas demasiado cortas o que sean solo números
-            if (mb_strlen($linea, 'UTF-8') < 4 || is_numeric($linea)) {
+            // 2. Si la línea contiene "NIF" o "CIF", suele ser la línea de datos fiscales
+            if (preg_match('/(?:NIF|CIF|N\.I\.F|C\.I\.F)/i', $linea)) {
                 continue;
             }
 
-            $candidatos[] = $linea;
+            // 3. Si la línea parece una cabecera de tabla
+            if (preg_match('/(?:CONCEPTO|DESCRIPCI[OÓ]N|CANTIDAD|PRECIO|SUBTOTAL)/i', $lineaLimpia)) {
+                break;
+            }
 
-            // Con dos líneas tenemos suficiente (razón social + subtítulo opcional)
+            // 4. Ignorar líneas que contengan palabras de ruido típicas
+            $esRuido = false;
+            foreach ($palabrasRuido as $ruido) {
+                if (mb_stripos($lineaLimpia, $ruido, 0, 'UTF-8') !== false) {
+                    // Caso especial: "Soluciones" puede ser parte del nombre, pero "Servicios" rara vez lo es solo
+                    if (mb_strtolower($ruido) === 'servicios' && mb_strlen($lineaLimpia) > 20) {
+                        $esRuido = true;
+                        break;
+                    }
+                    if (mb_strtolower($ruido) !== 'empresa' && mb_strtolower($ruido) !== 'cliente') {
+                         $esRuido = true;
+                         break;
+                    }
+                }
+            }
+            if ($esRuido) continue;
+
+            // 5. Ignorar si tiene demasiados números o símbolos de moneda
+            if (preg_match('/\d{2,}/', $lineaLimpia) && !preg_match('/[a-zA-Z]{5,}/', $lineaLimpia)) {
+                continue;
+            }
+
+            // 6. Ignorar líneas demasiado cortas o que sean solo números
+            if (mb_strlen($lineaLimpia, 'UTF-8') < 3 || is_numeric($lineaLimpia)) {
+                continue;
+            }
+
+            $candidatos[] = $lineaLimpia;
+
+            // Con una o dos líneas suele bastar
             if (count($candidatos) >= 2) break;
         }
 
-        // Unir con separador visual si hay varios fragmentos
         return implode(' · ', $candidatos);
     }
 
@@ -235,17 +276,30 @@ class OcrService
      */
     private function extraerNif(string $texto): string
     {
-        $resultado = $this->matchPattern(
-            $texto,
-            '/(?:NIF|CIF|N\.I\.F\.?|C\.I\.F\.?|VAT|ID)[:\s]*([A-Z]-?\d{7,8}[A-Z0-9])/i'
-        );
+        // 1. Patrones con prefijo explícito
+        $patrones = [
+            '/(?:NIF|CIF|N\.I\.F\.?|C\.I\.F\.?|VAT|ID|TIN|Tax\s*ID)[:\s]*([A-Z][ -]?\d{7,8}[A-Z0-9])/i',
+            '/(?:NIF|CIF|N\.I\.F\.?|C\.I\.F\.?|VAT|ID|TIN|Tax\s*ID)[:\s]*(\d{8}[A-Z])/i',
+        ];
+
+        foreach ($patrones as $patron) {
+            $resultado = $this->matchPattern($texto, $patron);
+            if (!empty($resultado)) {
+                return strtoupper(str_replace([' ', '-'], '', $resultado));
+            }
+        }
         
-        // Si no se encuentra con prefijo, buscar cualquier patrón que parezca un NIF/CIF español
-        if (empty($resultado)) {
-            $resultado = $this->matchPattern($texto, '/([A-Z]\d{8}|\d{8}[A-Z])/i');
+        // 2. Fallback: buscar cualquier patrón que parezca un NIF/CIF español (Letra+8dígitos o 8dígitos+Letra)
+        // Evitamos capturar fechas o números de factura largos
+        if (preg_match_all('/([A-Z]\d{8}|\d{8}[A-Z])/i', $texto, $matches)) {
+            foreach ($matches[0] as $posibleNif) {
+                // Un NIF no suele ser una fecha (YYYYMMDD) ni empezar por 202 (años actuales)
+                if (str_starts_with($posibleNif, '202')) continue;
+                return strtoupper($posibleNif);
+            }
         }
 
-        return strtoupper($resultado);
+        return '';
     }
 
     /**
@@ -264,16 +318,23 @@ class OcrService
     {
         // Intentar los patrones del más específico al más genérico
         $patrones = [
-            // "Factura Nº", "Fra. Nº", "Nº Factura"
-            '/(?:Factura|Fra\.?|Invoice)[:\s#Nº°nNo\.]*\s*([A-Z0-9][\w\/\-]{2,20})/i',
-            // "Nº:" o "Número:" seguido del código
-            '/N[º°ú](?:mero)?\.?\s*(?:de\s+factura)?[:\s]*([A-Z0-9][\w\/\-]{2,20})/i',
+            // 1. "Factura Nº", "Fra. Nº", "Nº Factura" seguido de algo con guiones o letras
+            '/(?:Factura|Fra\.?|Invoice)[:\s#Nº°nNo\.]+\s*([A-Z][\w\/\-]{2,20})/i',
+            '/N[º°ú](?:mero)?\.?\s*(?:de\s+factura)[:\s]*([A-Z0-9][\w\/\-]{2,20})/i',
+            // 2. Patrón de factura común (F-2024-001) aunque no tenga prefijo
+            '/(?:^|[\s:])([A-Z][\-\/]\d{4}[\-\/]\d{2,6})(?:$|[\s:])/i',
+            // 3. Fallback: algo que parezca un código pero NO sea el total ni fecha
+            '/(?:N[º°ú]|Número|N[oO])[:\s]*([A-Z0-9][\w\/\-]{2,20})/i',
         ];
 
         foreach ($patrones as $patron) {
             $resultado = $this->matchPattern($texto, $patron);
             if ($resultado !== '') {
-                return strtoupper(trim($resultado));
+                $val = strtoupper(trim($resultado));
+                // Si el número extraído es muy corto o es una fecha, lo ignoramos
+                if (strlen($val) < 3) continue;
+                if (preg_match('/^\d{2}[\/\-]\d{2}[\/\-]\d{4}$/', $val)) continue;
+                return $val;
             }
         }
 
@@ -390,8 +451,8 @@ class OcrService
             $linea = trim($linea);
             if (empty($linea)) continue;
 
-            // Ignorar líneas que contengan "Fecha" o "Nº Factura" ya que son cabecera de factura, no de tabla
-            if (preg_match('/Fecha\*|Nº Factura\*|Cliente\*/i', $linea)) {
+            // Ignorar líneas que contengan etiquetas de la interfaz del ERP para evitar falsos positivos
+            if (preg_match('/Fecha\*|Nº Factura\*|Cliente\*|Subir Imagen|Contabilizaci[oó]n Inteligente|A[ñn]adir concepto|Factura Cliente/i', $linea)) {
                 continue;
             }
 

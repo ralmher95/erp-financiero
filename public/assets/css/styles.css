@@ -287,6 +287,14 @@ tfoot td {
 .badge-pendiente { background: #fff3cd; color: #856404; }
 .badge-cancelada { background: #f8d7da; color: #721c24; }
 
+/* Tipos de Factura */
+.tipo-emitida { background: #eafaf1; color: #1e8449; border: 1px solid #27ae60; }
+.tipo-recibida { background: #fef9e7; color: #9a7d0a; border: 1px solid #f1c40f; }
+
+.total-emitida td { color: #1e8449 !important; background: #f0fdf4 !important; }
+.total-recibida td { color: #9a7d0a !important; background: #fffdf0 !important; }
+.total-balance td { background: #f8fafc !important; border-top: 2px solid #34495e !important; font-size: 1.1em; }
+
 /* ---------- Estados vacíos ---------- */
 .empty-msg {
     text-align: center;

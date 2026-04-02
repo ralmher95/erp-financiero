@@ -81,28 +81,30 @@ class FacturacionService
             // ── 2. Insertar cabecera de factura ───────────────────────────────
             $stmt = $this->db->prepare(
                 "INSERT INTO facturas
-                    (cliente_id, numero_serie, numero_factura, fecha_emision, base_imponible, cuota_iva, total)
+                    (tipo, cliente_id, proveedor_id, numero_serie, numero_factura, fecha_emision, base_imponible, cuota_iva, total)
                  VALUES
-                    (:cliente_id, :serie, :numero, :fecha, :base, :iva, :total)"
+                    (:tipo, :cliente_id, :proveedor_id, :serie, :numero, :fecha, :base, :iva, :total)"
             );
             $stmt->execute([
-                ':cliente_id' => (int)$datosFactura['cliente_id'],
-                ':serie'      => $serie,
-                ':numero'     => $numero,
-                ':fecha'      => $datosFactura['fecha'],
-                ':base'       => $datosFactura['base_imponible'],
-                ':iva'        => $datosFactura['iva_total'],
-                ':total'      => $datosFactura['total'],
+                ':tipo'         => $datosFactura['tipo'] ?? 'emitida',
+                ':cliente_id'   => $datosFactura['cliente_id'] ?? null,
+                ':proveedor_id' => $datosFactura['proveedor_id'] ?? null,
+                ':serie'        => $serie,
+                ':numero'       => $numero,
+                ':fecha'        => $datosFactura['fecha'],
+                ':base'         => $datosFactura['base_imponible'],
+                ':iva'          => $datosFactura['iva_total'],
+                ':total'        => $datosFactura['total'],
             ]);
 
             $facturaId = (int)$this->db->lastInsertId();
 
             // ── 3. Insertar líneas de factura ─────────────────────────────────
             $stmtLinea = $this->db->prepare(
-                "INSERT INTO lineas_factura
-                    (factura_id, descripcion, cantidad, precio_unitario, tipo_iva, subtotal, cuota_iva, total)
+                "INSERT INTO factura_lineas
+                    (factura_id, descripcion, cantidad, precio, iva, total)
                  VALUES
-                    (:f_id, :desc, :cant, :precio, :iva_pct, :sub, :iva_val, :total_linea)"
+                    (:f_id, :desc, :cant, :precio, :iva_pct, :total_linea)"
             );
 
             foreach ($lineas as $i => $linea) {
@@ -122,8 +124,6 @@ class FacturacionService
                     ':cant'        => $cant,
                     ':precio'      => $precio,
                     ':iva_pct'     => $ivaPct,
-                    ':sub'         => $subtotal,
-                    ':iva_val'     => $cuotaIva,
                     ':total_linea' => $totalL,
                 ]);
             }
@@ -138,7 +138,7 @@ class FacturacionService
             );
 
             // ── 4. Vincular el asiento a la factura ───────────────────────────
-            $this->db->prepare("UPDATE facturas SET numero_asiento = ? WHERE id = ?")
+            $this->db->prepare("UPDATE facturas SET asiento_id = ? WHERE id = ?")
                      ->execute([$numAsiento, $facturaId]);
 
             // ── 5. Confirmar todo o nada ──────────────────────────────────────
@@ -160,6 +160,14 @@ class FacturacionService
                 $this->db->rollBack();
             }
 
+            // Capturar la causa original para que el usuario la vea
+            $errorDetalle = $e->getMessage();
+            
+            // Si es un error de integridad de base de datos (ej: número duplicado)
+            if (str_contains($errorDetalle, 'Duplicate entry')) {
+                $errorDetalle = "Ya existe una factura con el número '{$datosFactura['numero']}' para el año '{$serie}'. Prueba con otro.";
+            }
+
             if (function_exists('log_error')) {
                 log_error('FacturacionService', 'Rollback en crearFactura: ' . $e->getMessage(), [
                     'numero' => $datosFactura['numero'] ?? 'N/A',
@@ -168,10 +176,10 @@ class FacturacionService
                 error_log('[FacturacionService] Error en crearFactura: ' . $e->getMessage());
             }
 
-            // Re-lanzar para que el controlador decida qué mostrar al usuario
+            // Re-lanzar con el detalle para que el usuario sepa qué corregir
             throw new RuntimeException(
-                'No se pudo crear la factura. La operación fue revertida.',
-                0,
+                "No se pudo crear la factura: " . $errorDetalle,
+                (int)$e->getCode(),
                 $e
             );
         }
@@ -182,33 +190,54 @@ class FacturacionService
     // =========================================================================
 
     /**
-     * Construye las líneas contables estándar para una factura de venta.
-     * Plan General Contable español:
-     *   (430) Clientes — DEBE por el total
-     *   (700) Ventas de mercaderías — HABER por la base imponible
-     *   (477) IVA repercutido — HABER por el IVA
-     *
-     * @throws RuntimeException Si alguna cuenta PGC no existe en la BD
+     * Construye las líneas contables estándar según el tipo de factura.
      */
     private function construirLineasContables(array $datos): array
     {
-        return [
-            [
+        $tipo = $datos['tipo'] ?? 'emitida';
+        $lineasContables = [];
+
+        if ($tipo === 'emitida') {
+            // VENTA: (430) Cliente DEBE | (700) Ventas HABER | (477) IVA Repercutido HABER
+            $lineasContables[] = [
                 'cuenta_id' => $this->obtenerCuentaId('430'),
                 'debe'      => (string)$datos['total'],
                 'haber'     => '0.00',
-            ],
-            [
+            ];
+            $lineasContables[] = [
                 'cuenta_id' => $this->obtenerCuentaId('700'),
                 'debe'      => '0.00',
                 'haber'     => (string)$datos['base_imponible'],
-            ],
-            [
-                'cuenta_id' => $this->obtenerCuentaId('477'),
+            ];
+            if ((float)$datos['iva_total'] > 0) {
+                $lineasContables[] = [
+                    'cuenta_id' => $this->obtenerCuentaId('477'),
+                    'debe'      => '0.00',
+                    'haber'     => (string)$datos['iva_total'],
+                ];
+            }
+        } else {
+            // COMPRA/GASTO: (600) Compras DEBE | (472) IVA Soportado DEBE | (400) Proveedor HABER
+            $lineasContables[] = [
+                'cuenta_id' => $this->obtenerCuentaId('600'), // Genérico compras
+                'debe'      => (string)$datos['base_imponible'],
+                'haber'     => '0.00',
+            ];
+            if ((float)$datos['iva_total'] > 0) {
+                $lineasContables[] = [
+                    'cuenta_id' => $this->obtenerCuentaId('472'),
+                    'debe'      => (string)$datos['iva_total'],
+                    'haber'     => '0.00',
+                ];
+            }
+            $lineasContables[] = [
+                'cuenta_id' => $this->obtenerCuentaId('400'),
                 'debe'      => '0.00',
-                'haber'     => (string)$datos['iva_total'],
-            ],
-        ];
+                'haber'     => (string)$datos['total'],
+            ];
+        }
+
+        return $lineasContables;
     }
 
     /**
@@ -260,11 +289,11 @@ class FacturacionService
             }
         }
 
-        // Validar que el total cuadre (base + IVA = total, tolerancia de 1 céntimo)
+        // Validar que el total cuadre (base + IVA = total, tolerancia de 5 céntimos por redondeos OCR)
         $totalCalculado = (float)$datos['base_imponible'] + (float)$datos['iva_total'];
-        if (abs($totalCalculado - (float)$datos['total']) > 0.01) {
+        if (abs($totalCalculado - (float)$datos['total']) > 0.05) {
             throw new InvalidArgumentException(sprintf(
-                'El total (%.2f) no coincide con base_imponible + iva_total (%.2f).',
+                'El total (%.2f) no coincide con la suma de Base + IVA (%.2f). Por favor, revisa las líneas.',
                 $datos['total'],
                 $totalCalculado
             ));

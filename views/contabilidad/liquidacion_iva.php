@@ -19,33 +19,90 @@ if ($trimestre >= 1 && $trimestre <= 4) {
     $periodo_label = "Año $anio";
 }
 
-// --- IVA REPERCUTIDO (facturas emitidas en el período) ---
-$rep = $pdo->prepare(
-    "SELECT COALESCE(SUM(base_imponible),0) AS base,
-            COALESCE(SUM(cuota_iva),0)      AS iva,
-            COALESCE(SUM(total),0)          AS total,
-            COUNT(id)                        AS num
-     FROM facturas
-     WHERE fecha_emision BETWEEN ? AND ?"
-);
-$rep->execute([$desde, $hasta]);
-$rep = $rep->fetch();
+// ⚠️ AJUSTE PARA MOSTRAR TODO SI EL PERIODO ES FUTURO (Para depuración del usuario)
+// Si el usuario está en 2026 pero tiene facturas en 2024, no las verá a menos que cambie el año.
+// No cambiamos la lógica de fechas, pero nos aseguramos de que el KPI sume correctamente lo filtrado.
 
-// --- IVA SOPORTADO (compras en el período) desde cuentas 472x ---
-$sop = $pdo->prepare(
-    "SELECT COALESCE(SUM(ld.debe), 0) AS iva_soportado
+// --- 1. IVA REPERCUTIDO (Ventas) ---
+$rep_facturas = $pdo->prepare("SELECT COALESCE(SUM(cuota_iva),0) as iva, COALESCE(SUM(base_imponible),0) as base FROM facturas WHERE tipo = 'emitida' AND fecha_emision BETWEEN ? AND ?");
+$rep_facturas->execute([$desde, $hasta]);
+$res_f = $rep_facturas->fetch();
+$iva_rep_f = (float)$res_f['iva'];
+$base_rep_f = (float)$res_f['base'];
+
+$rep_diario = $pdo->prepare(
+    "SELECT COALESCE(SUM(ld.haber), 0) AS iva
      FROM libro_diario ld
      JOIN cuentas_contables cc ON ld.cuenta_id = cc.id
-     WHERE cc.codigo_pgc IN ('4720','4721')
+     WHERE (cc.codigo_pgc LIKE '477%' OR (cc.codigo_pgc LIKE '47%' AND ld.haber > 0))
+       AND ld.concepto NOT LIKE 'Factura emitida nº%'
+       AND ld.concepto NOT LIKE 'Factura recibida nº%'
        AND ld.fecha BETWEEN ? AND ?"
 );
-$sop->execute([$desde, $hasta]);
-$sop = $sop->fetch();
+$rep_diario->execute([$desde, $hasta]);
+$iva_rep_d = (float)$rep_diario->fetchColumn();
 
-$iva_repercutido = (float)$rep['iva'];
-$iva_soportado   = (float)$sop['iva_soportado'];
+$iva_repercutido = $iva_rep_f + $iva_rep_d;
+
+// --- 2. IVA SOPORTADO (Compras/Gastos) ---
+$sop_facturas = $pdo->prepare("SELECT COALESCE(SUM(cuota_iva),0) as iva FROM facturas WHERE tipo = 'recibida' AND fecha_emision BETWEEN ? AND ?");
+$sop_facturas->execute([$desde, $hasta]);
+$iva_sop_f = (float)$sop_facturas->fetchColumn();
+
+$sop_diario = $pdo->prepare(
+    "SELECT COALESCE(SUM(ld.debe), 0) AS iva
+     FROM libro_diario ld
+     JOIN cuentas_contables cc ON ld.cuenta_id = cc.id
+     WHERE (cc.codigo_pgc LIKE '472%' OR (cc.codigo_pgc LIKE '47%' AND ld.debe > 0))
+       AND ld.concepto NOT LIKE 'Factura emitida nº%'
+       AND ld.concepto NOT LIKE 'Factura recibida nº%'
+       AND ld.fecha BETWEEN ? AND ?"
+);
+$sop_diario->execute([$desde, $hasta]);
+$iva_sop_d = (float)$sop_diario->fetchColumn();
+
+$iva_soportado = $iva_sop_f + $iva_sop_d;
+
 $resultado_iva   = $iva_repercutido - $iva_soportado;
-$hay_datos       = $rep['num'] > 0;
+$hay_datos       = $iva_repercutido > 0 || $iva_soportado > 0;
+
+// --- Detalle facturas EMITIDAS ---
+$stmt_emitidas = $pdo->prepare(
+    "SELECT f.numero_serie, f.numero_factura, f.fecha_emision,
+            f.base_imponible, f.cuota_iva, f.total, c.nombre_fiscal
+     FROM facturas f
+     JOIN clientes c ON f.cliente_id = c.id
+     WHERE f.tipo = 'emitida' AND f.fecha_emision BETWEEN ? AND ?
+     ORDER BY f.fecha_emision DESC"
+);
+$stmt_emitidas->execute([$desde, $hasta]);
+$emitidas = $stmt_emitidas->fetchAll();
+
+// --- Detalle facturas RECIBIDAS ---
+$stmt_recibidas = $pdo->prepare(
+    "SELECT f.numero_serie, f.numero_factura, f.fecha_emision,
+            f.base_imponible, f.cuota_iva, f.total, c.nombre_fiscal
+     FROM facturas f
+     JOIN clientes c ON f.cliente_id = c.id
+     WHERE f.tipo = 'recibida' AND f.fecha_emision BETWEEN ? AND ?
+     ORDER BY f.fecha_emision DESC"
+);
+$stmt_recibidas->execute([$desde, $hasta]);
+$recibidas = $stmt_recibidas->fetchAll();
+
+// --- Detalle asientos de IVA (Diario) EXCLUYENDO facturas automáticas ---
+$stmt_asientos = $pdo->prepare(
+    "SELECT ld.fecha, ld.numero_asiento, ld.concepto, ld.debe, ld.haber, cc.codigo_pgc
+     FROM libro_diario ld
+     JOIN cuentas_contables cc ON ld.cuenta_id = cc.id
+     WHERE cc.codigo_pgc LIKE '47%'
+       AND ld.concepto NOT LIKE 'Factura emitida nº%'
+       AND ld.concepto NOT LIKE 'Factura recibida nº%'
+       AND ld.fecha BETWEEN ? AND ?
+     ORDER BY ld.fecha DESC"
+);
+$stmt_asientos->execute([$desde, $hasta]);
+$asientos_iva = $stmt_asientos->fetchAll();
 
 // --- Detalle facturas del período ---
 $stmt_detalle = $pdo->prepare(
@@ -81,16 +138,16 @@ $anios       = range($anio_actual, $anio_actual - 4);
     <!-- Filtro de período -->
     <form method="GET" class="filtros">
         <div class="campo">
-            <label>Año</label>
-            <select name="anio">
+            <label for="anio">Año</label>
+            <select name="anio" id="anio">
                 <?php foreach ($anios as $a): ?>
                     <option value="<?= $a ?>" <?= $a === $anio ? 'selected' : '' ?>><?= $a ?></option>
                 <?php endforeach; ?>
             </select>
         </div>
         <div class="campo">
-            <label>Trimestre</label>
-            <select name="trimestre">
+            <label for="trimestre">Trimestre</label>
+            <select name="trimestre" id="trimestre">
                 <option value="0" <?= $trimestre === 0 ? 'selected' : '' ?>>Anual completo</option>
                 <option value="1" <?= $trimestre === 1 ? 'selected' : '' ?>>T1 — Ene / Mar</option>
                 <option value="2" <?= $trimestre === 2 ? 'selected' : '' ?>>T2 — Abr / Jun</option>
@@ -106,11 +163,9 @@ $anios       = range($anio_actual, $anio_actual - 4);
         <div class="empty-state">
             <span class="icono">📭</span>
             <h2>No hay liquidación disponible</h2>
-            <p>No se han registrado facturas en el período <strong><?= htmlspecialchars($periodo_label) ?></strong>.
-               La liquidación de IVA se calculará automáticamente en cuanto generes facturas.</p>
-            <!-- MEJORA #7: URL usando URL_BASE en lugar de hardcodeada -->
+            <p>No se han registrado movimientos de IVA en el período <strong><?= htmlspecialchars($periodo_label) ?></strong>.</p>
             <a href="<?= URL_BASE ?>views/facturacion/crear_factura.php" class="btn-accion">
-                + Crear primera factura
+                + Crear factura
             </a>
         </div>
 
@@ -126,48 +181,95 @@ $anios       = range($anio_actual, $anio_actual - 4);
 
         <div class="kpi-grid">
             <div class="kpi kpi-base">
-                <h3>Base Imponible</h3>
-                <p><?= number_format($rep['base'], 2, ',', '.') ?> €</p>
+                <h3>Base Imponible (Ventas)</h3>
+                <p><?= number_format($base_rep_f, 2, ',', '.') ?> €</p>
+                <small>Solo facturas emitidas</small>
             </div>
             <div class="kpi kpi-rep">
-                <h3>IVA Repercutido</h3>
+                <h3>IVA Repercutido (Ventas)</h3>
                 <p><?= number_format($iva_repercutido, 2, ',', '.') ?> €</p>
+                <small>Facturas + Diario</small>
             </div>
             <div class="kpi kpi-sop">
-                <h3>IVA Soportado</h3>
+                <h3>IVA Soportado (Gastos)</h3>
                 <p><?= number_format($iva_soportado, 2, ',', '.') ?> €</p>
+                <small>Facturas + Diario</small>
             </div>
             <div class="kpi kpi-res <?= $clase ?>">
-                <h3>Resultado IVA</h3>
+                <h3>Resultado Liquidación</h3>
                 <p><?= number_format($resultado_iva, 2, ',', '.') ?> €</p>
+                <small>Diferencia a liquidar</small>
             </div>
         </div>
 
-        <h2>📑 Detalle de Facturas Emitidas — <?= htmlspecialchars($periodo_label) ?></h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>Factura</th><th>Cliente</th><th>Fecha</th>
-                    <th class="text-right">Base Imponible</th>
-                    <th class="text-right">IVA</th>
-                    <th class="text-right">Total</th>
-                </tr>
-            </thead>
-            <tbody>
-            <?php if (empty($detalle)): ?>
-                <tr><td colspan="6" style="text-align:center;padding:20px;color:#aaa">Sin facturas en este período.</td></tr>
-            <?php else: foreach ($detalle as $row): ?>
-                <tr>
-                    <td class="bold"><?= htmlspecialchars($row['numero_serie']) ?>/<?= $row['numero_factura'] ?></td>
-                    <td><?= htmlspecialchars($row['nombre_fiscal']) ?></td>
-                    <td><?= date('d/m/Y', strtotime($row['fecha_emision'])) ?></td>
-                    <td class="text-right"><?= number_format($row['base_imponible'], 2, ',', '.') ?> €</td>
-                    <td class="text-right"><?= number_format($row['cuota_iva'],      2, ',', '.') ?> €</td>
-                    <td class="text-right bold"><?= number_format($row['total'],     2, ',', '.') ?> €</td>
-                </tr>
-            <?php endforeach; endif; ?>
-            </tbody>
-        </table>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 2rem;">
+            <div>
+                <h2>� Facturas Emitidas</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Factura</th><th>Cliente</th><th class="text-right">IVA</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    <?php if (empty($emitidas)): ?>
+                        <tr><td colspan="3" style="text-align:center;padding:20px;color:#aaa">Sin ventas.</td></tr>
+                    <?php else: foreach ($emitidas as $row): ?>
+                        <tr>
+                            <td><?= htmlspecialchars($row['numero_serie']) ?>/<?= $row['numero_factura'] ?></td>
+                            <td><?= htmlspecialchars($row['nombre_fiscal']) ?></td>
+                            <td class="text-right bold"><?= number_format($row['cuota_iva'], 2, ',', '.') ?> €</td>
+                        </tr>
+                    <?php endforeach; endif; ?>
+                    </tbody>
+                </table>
+
+                <h2 style="margin-top:2rem;">📥 Facturas Recibidas</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Factura</th><th>Proveedor</th><th class="text-right">IVA</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    <?php if (empty($recibidas)): ?>
+                        <tr><td colspan="3" style="text-align:center;padding:20px;color:#aaa">Sin compras.</td></tr>
+                    <?php else: foreach ($recibidas as $row): ?>
+                        <tr>
+                            <td><?= htmlspecialchars($row['numero_serie']) ?>/<?= $row['numero_factura'] ?></td>
+                            <td><?= htmlspecialchars($row['nombre_fiscal']) ?></td>
+                            <td class="text-right bold"><?= number_format($row['cuota_iva'], 2, ',', '.') ?> €</td>
+                        </tr>
+                    <?php endforeach; endif; ?>
+                    </tbody>
+                </table>
+            </div>
+
+            <div>
+                <h2>📖 Otros Apuntes de IVA (Diario)</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Fecha</th><th>Concepto</th><th class="text-right">IVA</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    <?php if (empty($asientos_iva)): ?>
+                        <tr><td colspan="3" style="text-align:center;padding:20px;color:#aaa">Sin otros apuntes.</td></tr>
+                    <?php else: foreach ($asientos_iva as $row): 
+                        $val = ($row['haber'] > 0) ? $row['haber'] : $row['debe'];
+                        $tipo = ($row['haber'] > 0) ? '(Rep.)' : '(Sop.)';
+                    ?>
+                        <tr>
+                            <td><?= date('d/m/y', strtotime($row['fecha'])) ?></td>
+                            <td><small><?= htmlspecialchars($row['concepto']) ?></small></td>
+                            <td class="text-right"><?= number_format($val, 2, ',', '.') ?> € <small><?= $tipo ?></small></td>
+                        </tr>
+                    <?php endforeach; endif; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
 
     <?php endif; ?>
 </div>
