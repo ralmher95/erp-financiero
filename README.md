@@ -82,11 +82,11 @@ Integridad SQL: Diseño de consultas complejas para garantizar balances contable
 Escalabilidad: Uso de namespaces para mantener un código limpio y mantenible.
 
 ## 🔮 Mejoras Futuras
-[ ] Auth: Implementar autenticación robusta mediante JWT.
+ Auth: Implementar autenticación robusta mediante JWT.
 
-[ ] AI: Integrar OpenCV para pre-procesamiento de imagen avanzado.
+ AI: Integrar OpenCV para pre-procesamiento de imagen avanzado.
 
-[ ] API: Crear una interfaz REST para conectividad móvil.
+ API: Crear una interfaz REST para conectividad móvil.
 
 ## 📸 Capturas del Proyecto
 
