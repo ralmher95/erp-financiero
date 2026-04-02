@@ -30,3 +30,13 @@ jobs:
         env:
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
           DB_USER: ${{ secrets.DB_USER }}
+
+        # ... (después de los pasos de PHP)
+
+      - name: Configurar Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Ejecutar Análisis de Solvencia
+        run: python scripts/analisis_financiero.py
