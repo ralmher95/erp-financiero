@@ -11,11 +11,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # checkout@v4.1.1
       - name: Checkout del código
-        uses: actions/checkout@v4
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
 
+      # setup-php@v2.27.0
       - name: Configurar PHP
-        uses: shivammathur/setup-php@v2
+        uses: shivammathur/setup-php@4bd44f2249b624526b3ee354c07923ed956895e4
         with:
           php-version: '8.2'
           extensions: mbstring, xml, ctype, mysql, pdo_mysql
@@ -24,19 +26,14 @@ jobs:
         run: |
           find . -name "*.php" -not -path "./vendor/*" | xargs -n 1 php -l
 
-      - name: Test de Conexión y Seguridad
-        # El comando 'run' y 'env' deben estar al mismo nivel de profundidad
-        run: echo "Probando variables de entorno..."
-        env:
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-          DB_USER: ${{ secrets.DB_USER }}
-
-        # ... (después de los pasos de PHP)
-
+      # setup-python@v4.7.1
       - name: Configurar Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@65d7f2d534ac1bc67fcd62888c5f4f3d20238e0a
         with:
           python-version: '3.10'
 
       - name: Ejecutar Análisis de Solvencia
         run: python scripts/analisis_financiero.py
+        env:
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_USER: ${{ secrets.DB_USER }}
